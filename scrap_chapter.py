@@ -11,22 +11,6 @@ import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-url_list = ['https://lotmsummaries.wordpress.com/2024/03/24/chapters-1-10-summary/','https://lotmsummaries.wordpress.com/2024/04/30/chapters-11-20-analysis-and-summary-chapter-by-chapter/',
-            'https://lotmsummaries.wordpress.com/2024/06/09/chapters-21-30-summary-and-analysis-combined/','https://lotmsummaries.wordpress.com/2024/06/11/chapters-31-40-summary-and-analysis-combined/',
-            'https://lotmsummaries.wordpress.com/2024/06/16/chapters-41-50-summary-and-analysis/','https://lotmsummaries.wordpress.com/2024/06/16/chapters-51-60-summary-and-analysis/',
-            'https://lotmsummaries.wordpress.com/2024/06/18/chapter-61-70-summary-and-analysis/']
-
-
-def extract_summary_from_lotmsummaries(chapter_url):
-    resp = requests.get(chapter_url)
-    resp.encoding = 'utf-8'
-    soup = BeautifulSoup(resp.text, "html.parser")
-    # Placeholder: locate where the summary appears
-    content = soup.find("div", class_="entry-content")
-    paragraphs = content.find_all("p") if content else []
-    summaries = [p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)]
-    return summaries
-
 def extract_chapter_text(chapter_url):
     resp = requests.get(chapter_url)
     resp.encoding = 'utf-8'
@@ -96,38 +80,10 @@ def extract_text_from_novelfull(url):
     
     return chp_list
 
-
-
-summary_list = []
-for url in url_list:
-    summaries = extract_summary_from_lotmsummaries(url)[0:10]
-    summary_list.extend(summaries)
-
-#text = extract_text_from_novelfull("https://novelfull.net/lord-of-the-mysteries.html")
-#text2 = extract_summary_from_novelfull('https://novelfull.net/lord-of-the-mysteries.html?page=2')
-
-"""
-text = [[""]] + text
-text_f = text + text2
-print(len(text_f))
-print(len(summary_list))
-
-df = pd.DataFrame(text_f[0:70], columns=['text'])
-
-df['summary'] = summary_list
-print(df)
-df.to_csv('data/lotm_dataset', index=False)
-"""
-
 def extract_chapter_dragneelclub(chapter_url):
     resp = requests.get(chapter_url)
     resp.encoding = 'utf-8'
     soup = BeautifulSoup(resp.text, "html.parser")
-
-    #for tag in soup.find_all("div"):
-     #   if tag.has_attr("id"):
-      #      print(f"ID: {tag['id']}")
-       #     print(tag.prettify())
 
     # Locate the container with the chapter paragraphs
     content_div = soup.find("div", id="page")
@@ -144,7 +100,6 @@ def extract_chapter_dragneelclub(chapter_url):
             if text:
                 text = text.replace('“', '"').replace('”', '"').replace("’", "'").replace("—", "-").replace('…', '...')
                 tag_type = elem.name
-                # Optionally format or label it
                 if tag_type == "h2":
                     result.append([f"##{text}##\n"])
                 elif tag_type == "p":
@@ -154,7 +109,6 @@ def extract_chapter_dragneelclub(chapter_url):
     return summary
 
 def extract_summary_from_dragneelclub(url):
-    base_url = 'https://novelfull.net'
 
     response = requests.get(url)
     response.encoding = 'utf-8'
@@ -208,5 +162,4 @@ def extract_text_and_summary(num_row : int):
 
 df = extract_text_and_summary(1432) #nb of chp
 print(df)
-#df.to_csv('data/lotm_dataset', index=False)
 df.to_json('data/lotm_dataset', index=False)
