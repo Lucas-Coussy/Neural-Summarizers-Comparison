@@ -15,10 +15,11 @@ df = pd.read_json('data/lotm_clean_dataset.json')
 dataset = Dataset.from_pandas(df)
 dataset = dataset.remove_columns('__index_level_0__')
 
-split = dataset.train_test_split(test_size=0.02)
+split = dataset.train_test_split(test_size=0.006, seed=42) 
 
+#print(split)
 train_dataset = split['train']
-test_dataset = split['test']
+test_dataset = split['test'] # it's just to get a global idea of which model is more likely to perform well, so a small sample is enough (around ten chapter here)
 
 df_train = train_dataset.to_pandas()
 
@@ -29,7 +30,7 @@ print("")
 
 causal_model = ["gpt2-medium","microsoft/phi-3-mini-128k-instruct"] 
 
-seq2seq_model = ["google/flan-t5-base","facebook/bart-large-cnn","google/pegasus-xsum","t5-large","allenai/led-base-16384"] #"Stancld/longt5-tglobal-large-16384-pubmed-3k_steps"
+seq2seq_model = ["google/flan-t5-base","facebook/bart-large-cnn","google/pegasus-xsum","t5-large","allenai/led-base-16384"] 
 
 model_name = causal_model + seq2seq_model
 
@@ -62,8 +63,11 @@ for model_ in model_name:
 
     for test_text in test_dataset: #summary all test_text and add them to the df
         text = test_text['text']
+        #print(text)
+        print("max_token = ",max_input_tokens)
         my_prompt = prompt.get_prompt(model_)
         summary = by_chunk.summarize_by_chunk(text, my_prompt, model, tokenizer, max_input_tokens=max_input_tokens, max_output_tokens=max_output_length, device=device)
+        #print(summary)
         df_summary.loc[len(df_summary)] = [model_,test_text['num_chp'],summary]
         
 

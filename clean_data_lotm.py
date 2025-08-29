@@ -32,6 +32,6 @@ for num_chp in range(shape[0]):
     df["text"].iloc[num_chp] = df["text"].iloc[num_chp][0]
     df["num_chp"] = df.index + 1 
 
-df = df.iloc[:, [2, 0, 1]] #reorder the df  columns
+df = df.iloc[:, [2, 0, 1]]
 #print(df)
 df.to_json("data/lotm_clean_dataset", index=False)

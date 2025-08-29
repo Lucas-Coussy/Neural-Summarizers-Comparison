@@ -1,9 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-from selenium import webdriver
 import time
-import chromedriver_autoinstaller
 from bs4 import Tag
 import time
 import re
@@ -24,7 +22,6 @@ def extract_chapter_text(chapter_url):
     index_C = 0 #index tag chapter
     index_T = 0 #index tag Translator
     for i,p in enumerate(content_div): 
-        #print(i,p)
         extracted_text = p.get_text(separator=" ", strip=True)
         if "Translator" in extracted_text:
             index_T = i + 1 #get Translator tag index + 1
@@ -32,10 +29,10 @@ def extract_chapter_text(chapter_url):
 
         strong_tag = p.find("strong")
         if strong_tag and "Chapter" in strong_tag.get_text(separator=" ", strip=True):
-            index_C = i + 1 #get Chapter tag index + 1
-    
+            index_C = i #get Chapter tag index + 1 - 1 because the <div> is counted here meanwhile it won't be counted in findAll('p'),
+                        #so we will subtract 1 from index_C = i + 1 because of <div> that won't appear in findAll('p') 
+
     result = content_div.findAll('p')
-    #print(result)
     if index_T != 0:
         text = "\n".join(p.get_text(strip=True) for p in result[index_T:] if p.get_text(strip=True))
     else:
@@ -50,14 +47,18 @@ from bs4 import BeautifulSoup
 def extract_text_from_novelfull(url):
     base_url = 'https://novelfull.net'
 
-    response = requests.get(url)
-    response.encoding = 'utf-8'
-    soup = BeautifulSoup(response.text, "html.parser")
-    
-    chapter_list = soup.select("div.row")
-    if not chapter_list:
-        print("❌ Could not find div.row")
-        return []
+    chapter_list = []
+    num_attempt = 1
+    while not chapter_list:
+        print(f"get list of chapters attempt {num_attempt}")
+        response = requests.get(url)
+        response.encoding = 'utf-8'
+        soup = BeautifulSoup(response.text, "html.parser")
+        
+        chapter_list = soup.select("div.row")
+        if not chapter_list:
+            print("Couldn't find chapters on {url}")
+            num_attempt += 1
 
     chapter_links = []
     for chp_list in chapter_list:
@@ -68,24 +69,31 @@ def extract_text_from_novelfull(url):
                 full_url = base_url + href
                 chapter_links.append(full_url)
 
-    chapter_links = chapter_links
+    chapter_links = [link for link in chapter_links if "lord-of-the-mysteries" in link]
 
     chp_list = []
     for chp in chapter_links:
-        print(f"Fetching: {chp}")
-        #time.sleep(1)
+        num_attempt = 1
+        print(f"Fetching attempt {num_attempt}:  {chp}")
         chp_text = extract_chapter_text(chp)
+
+        while chp_text == "" and num_attempt <= 10: #repeat attempt to access website if didn't work
+            num_attempt += 1 
+            print(f"Fetching attempt {num_attempt}: {chp}")
+            time.sleep(1)
+            chp_text = extract_chapter_text(chp)
+
         if chp_text:
             chp_list.append(chp_text)
     
     return chp_list
+
 
 def extract_chapter_dragneelclub(chapter_url):
     resp = requests.get(chapter_url)
     resp.encoding = 'utf-8'
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    # Locate the container with the chapter paragraphs
     content_div = soup.find("div", id="page")
     if not content_div:
         print(f"Could not find text on {chapter_url}")
@@ -109,7 +117,6 @@ def extract_chapter_dragneelclub(chapter_url):
     return summary
 
 def extract_summary_from_dragneelclub(url):
-
     response = requests.get(url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, "html.parser")
@@ -163,3 +170,4 @@ def extract_text_and_summary(num_row : int):
 df = extract_text_and_summary(1432) #nb of chp
 print(df)
 df.to_json('data/lotm_dataset', index=False)
+

@@ -102,7 +102,13 @@ class by_chunk :
             chunks.append(". ".join(current_chunk))     #if the last chunks wasn't added to the list of chunks, it add it  
         return chunks
     
-    def summarize_by_chunk(text, prompt, model, tokenizer, max_input_tokens=512, max_output_tokens=300, detailed_summary = False,device="cpu"):
+    def summarize_by_chunk(text, prompt, model, tokenizer, max_input_tokens=512, max_output_tokens=300, for_training = False,device="cpu"):
+        len_full_text = len(tokenizer.encode(text, add_special_tokens=False)) 
+        print("length full text : ",len_full_text)
+        
+        if len_full_text <= max_output_tokens: #if length of full text shorter than length of wanted summary then return original text
+            return text 
+        
         if model.name_or_path == "gpt2-medium": #if model is gpt2
             chunks = by_chunk.chunk_text_by_sentence_gpt2(text, prompt, tokenizer, max_tokens=max_input_tokens)
 
@@ -113,6 +119,9 @@ class by_chunk :
             my_model = MyModel.gpt2_apply
 
         elif model.name_or_path == "microsoft/phi-3-mini-128k-instruct":
+            if for_training:
+                return text
+            
             chunks = by_chunk.chunk_text_by_sentence_phi(text, prompt, tokenizer, max_tokens=max_input_tokens)
             
             final_prompt = prompt + "\n\n### Text: " + " #### " + "\n\n### Summary:"
@@ -139,20 +148,17 @@ class by_chunk :
             my_model = MyModel.seq2seq
 
         print("number of chunks = ", len(chunks))
-        print("max_input_tokens = ",max_input_tokens)
-        print("number of token per chunks: ", output_length)
-        print("")
-
+        print("max_input_tokens = ", max_input_tokens)
+        print("max generated token per chunks: ", output_length)
          
         partial_summaries = []
         
         for chunk in chunks:
-            print("output_length = ", output_length)
             summary = my_model(chunk, tokenizer, model, output_length=output_length, device=device) #we further limit the output length so that the summary of each 
             partial_summaries.append(summary)    
                                                                                                  #chunk can be concatenated and pass into the model without truncating
         combined_summary = " ".join(partial_summaries)
-        if len(partial_summaries) == 1 or detailed_summary == True:
+        if len(partial_summaries) == 1 or for_training == True:
             return combined_summary
         else:
             final_summary = my_model(final_prompt.replace("####",combined_summary), tokenizer, model, output_length=max_output_tokens, device=device)
