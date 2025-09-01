@@ -1,4 +1,5 @@
 from datasets import load_dataset, DatasetDict, Dataset
+from rouge_score import rouge_scorer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForCausalLM
 import pandas as pd
 import torch
@@ -21,7 +22,8 @@ df_summary = pd.DataFrame(columns=['model','num_chp','summary'])
 
 for model_ in model_name:
     torch.cuda.empty_cache()
-    model_tag = f"trained_{model_.replace('/', '_')}"
+    #model_tag = f"trained_{model_.replace('/', '_')}" #if you ran the Train_model file
+    model_tag = f"Lambda-ck/{model_.split('/')[1]}-lotm-fine-tuned" #If you want to use the trained model on the HuggingFace
 
     test_file_name = f"data/test_dataset_for_{model_.replace('/', '_')}.json"
 

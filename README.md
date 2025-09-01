@@ -61,14 +61,26 @@ Next, I trained the **three best-performing models** (**phi-3-mini-128k-instruct
 - The texts were **split into chunks** and summarized in the same way as when the models were applied.  
 - The **concatenated partial summaries** (shorter than the model's input size) were exported to files named:  
   `summary_for_training_{model_name}`.  
-- These concatenated summaries were then used as **input** to fine-tune the models, with the **human-made summaries** serving as the target.  
+- These concatenated summaries were then used as **input** to fine-tune the models, with the **human-made summaries** serving as the target (for the code, see the file `Train_model.py`).
 
 ## Applying the trained model
 
 Here, I slightly adjusted the code from **`model_comparison.py`** (see `Trained_model_comparison.py`) so that it could apply the **fine-tuned models**, just like it did with the pre-trained ones.  
 
-- The process is the same, and it exports a file similar to **`model_comparison.json`**, but for the fine-tuned models it is named:  
+- The process is the same, and it exports a file similar to **`model_comparison.json`** but for the fine-tuned models, it is named:  
   **`Trained_model_comparison.json`**  
+
+At the beginning of the for loop, the **`model_tag`** can be set depending on whether you want to run a **locally saved trained model** obtained from running the file `Train_model.py`, or the **fine-tuned model hosted on Hugging Face** trained for this project.
+
+```python
+for model_ in model_name:
+    torch.cuda.empty_cache()
+    # Use this option to load the locally saved model (from `Train_model.py`)
+    # model_tag = f"trained_{model_.replace('/', '_')}"
+
+    # Use this option to load the model uploaded on Hugging Face
+    model_tag = f"Lambda-ck/{model_.split('/')[1]}-lotm-fine-tuned"
+```
 
 ## Grading the trained models
 
