@@ -25,7 +25,7 @@ print(dataset)
 
 causal_model = ["microsoft/phi-3-mini-128k-instruct"] 
 
-seq2seq_model = ["facebook/bart-large-cnn","google/flan-t5-base"] 
+seq2seq_model = ["facebook/bart-large-cnn", "allenai/led-base-16384"] #"google/flan-t5-base"
 
 model_name = causal_model + seq2seq_model
 

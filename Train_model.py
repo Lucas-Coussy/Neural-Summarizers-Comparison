@@ -21,9 +21,10 @@ from my_classes.run_training import train
 import os  
 os.chdir(r"C:\Users\Lucas\Desktop\vacantion classes")
 
-causal_model = [] #"microsoft/phi-3-mini-128k-instruct"
 
-seq2seq_model = ["facebook/bart-large-cnn","google/flan-t5-base"] #"facebook/bart-large-cnn"
+causal_model = ["microsoft/phi-3-mini-128k-instruct"] #"microsoft/phi-3-mini-128k-instruct"
+
+seq2seq_model = ["facebook/bart-large-cnn","allenai/led-base-16384"] #"google/flan-t5-base"
 
 model_name = causal_model + seq2seq_model
 
@@ -60,6 +61,9 @@ for model_ in model_name:
     if "t5" in model_:
         tokenizer = AutoTokenizer.from_pretrained(model_, trust_remote_code=True) #t5 models config don't have max_position_embeddings attribute
         model_max_length = tokenizer.model_max_length
+    elif "led" in model_:
+        config = AutoConfig.from_pretrained(model_, trust_remote_code=True)
+        model_max_length = config.max_encoder_position_embeddings 
     else:
         config = AutoConfig.from_pretrained(model_, trust_remote_code=True)
         model_max_length = config.max_position_embeddings

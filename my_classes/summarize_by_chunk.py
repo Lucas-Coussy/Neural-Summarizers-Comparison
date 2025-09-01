@@ -108,6 +108,8 @@ class by_chunk :
         
         if len_full_text <= max_output_tokens: #if length of full text shorter than length of wanted summary then return original text
             return text 
+        if len_full_text <= max_input_tokens and for_training == True: #if it's for training and the text is inferior to the input size, then return text
+            return text
         
         if model.name_or_path == "gpt2-medium": #if model is gpt2
             chunks = by_chunk.chunk_text_by_sentence_gpt2(text, prompt, tokenizer, max_tokens=max_input_tokens)
@@ -119,8 +121,6 @@ class by_chunk :
             my_model = MyModel.gpt2_apply
 
         elif model.name_or_path == "microsoft/phi-3-mini-128k-instruct":
-            if for_training:
-                return text
             
             chunks = by_chunk.chunk_text_by_sentence_phi(text, prompt, tokenizer, max_tokens=max_input_tokens)
             

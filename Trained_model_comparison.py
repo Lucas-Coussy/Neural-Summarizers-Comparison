@@ -12,7 +12,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 causal_model = [] #"microsoft/phi-3-mini-128k-instruct" #Could not be fine-tuned due to insufficient resources.
 
-seq2seq_model = ["google/flan-t5-base","facebook/bart-large-cnn"] 
+seq2seq_model = ["allenai/led-base-16384","facebook/bart-large-cnn"] #"google/flan-t5-base",
 
 model_name = causal_model + seq2seq_model
 
